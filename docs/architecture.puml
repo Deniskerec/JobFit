@@ -1,0 +1,82 @@
+@startuml JobFit Architecture
+
+skinparam backgroundColor #1a1a2e
+skinparam defaultFontColor #eeeeee
+skinparam arrowColor #00d4ff
+skinparam componentBackgroundColor #16213e
+skinparam componentBorderColor #00d4ff
+skinparam databaseBackgroundColor #0f3460
+skinparam databaseBorderColor #00d4ff
+skinparam cloudBackgroundColor #533483
+skinparam cloudBorderColor #00d4ff
+skinparam rectangleBackgroundColor #16213e
+skinparam rectangleBorderColor #00d4ff
+skinparam packageBackgroundColor #0f0f23
+skinparam packageBorderColor #444444
+
+title JobFit - Resume Improvement System\n
+
+actor "User" as user #00d4ff
+
+package "Frontend Layer" {
+    [Web Browser\nHTML/CSS/JS] as frontend
+}
+
+package "Backend Layer (src/)" {
+    package "API Layer (src/api/)" {
+        [FastAPI\nEndpoints] as api
+    }
+
+    package "Service Layer (src/services/)" {
+        [File Parser\nPDF/DOCX Reader] as fileservice
+        [AI Analyzer\nClaude Integration] as aiservice
+        [Database Service\nPostgreSQL Handler] as dbservice
+    }
+
+    package "Models Layer (src/models/)" {
+        [Data Models\nPydantic Schemas] as models
+    }
+}
+
+package "External Services" {
+    cloud "Claude API\n(Anthropic)" as claude
+    database "PostgreSQL\nDatabase" as postgres
+}
+
+package "File Storage" {
+    folder "uploads/\nTemporary Files" as uploads
+}
+
+user --> frontend : 1. Upload CV\n+ Job Description
+frontend --> api : 2. HTTP Request\n(POST /analyze)
+api --> fileservice : 3. Parse Files
+fileservice --> uploads : Read/Write
+api --> aiservice : 4. Analyze Content
+aiservice --> claude : 5. Send to AI
+claude --> aiservice : 6. AI Response
+api --> dbservice : 7. Save Results
+dbservice --> postgres : Store Data
+api --> frontend : 8. Return Analysis
+frontend --> user : 9. Show Improvements
+
+note right of claude
+  - Checks CV layout
+  - Analyzes content
+  - Matches to job description
+  - Suggests improvements
+end note
+
+note right of postgres
+  - User sessions
+  - CV metadata
+  - Analysis history
+  - Improvement scores
+end note
+
+note bottom of uploads
+  Temporary storage
+  for uploaded files
+  (PDF, DOCX)
+end note
+
+@enduml
