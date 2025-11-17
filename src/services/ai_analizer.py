@@ -2,6 +2,7 @@ import json
 from openai import OpenAI
 from dotenv import load_dotenv
 from src.services.file_parser import parse_file
+from src.services.database import save_analysis
 
 load_dotenv()
 client = OpenAI()
@@ -57,15 +58,21 @@ def parse_response(response_text):
         return {"error": "Failed to parse AI response", "raw": response_text}
 
 
-def analyze_cv(cv_text, job_description):
+def analyze_cv(cv_text, job_description, save_to_db=True):
     """Main function: analyze CV against job description"""
     prompt = build_prompt(cv_text, job_description)
     response = call_openai(prompt)
     result = parse_response(response)
+
+    # Save to database if requested
+    if save_to_db and "error" not in result:
+        save_analysis(job_description, result)
+        print("✅ Analysis saved to Supabase!")
+
     return result
 
 
-# Test with actual file
+# Test with actual file AND save to database
 if __name__ == "__main__":
     cv_path = "/Users/zetor/Documents/projects/JobFit/uploads/sample.pdf"
     cv_text = parse_file(cv_path)
