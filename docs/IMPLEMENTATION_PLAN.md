@@ -4,12 +4,12 @@
 **Goal:** Read CV files (PDF and DOCX) and extract text
 
 ### Tasks:
-- [ ] 1.1 Create `src/services/file_parser.py`
-  - [ ] Function to read PDF files and extract text
-  - [ ] Function to read DOCX files and extract text
-  - [ ] Function to detect file type and call correct parser
-- [ ] 1.2 Test with sample PDF resume
-- [ ] 1.3 Test with sample DOCX resume
+- ✅ 1.1 Create `src/services/file_parser.py`
+  - ✅ Function to read PDF files and extract text
+  - ✅Function to read DOCX files and extract text
+  - ✅Function to detect file type and call correct parser
+- ✅1.2 Test with sample PDF resume
+- ✅ 1.3 Test with sample DOCX resume
 
 ---
 

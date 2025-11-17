@@ -11,3 +11,7 @@
 4. AI Service sends to Claude for analysis
 5. Results stored in PostgreSQL
 6. Response sent back to user
+
+
+https://supabase.com/!!
+--Ernesto314!!
