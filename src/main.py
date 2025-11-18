@@ -192,8 +192,8 @@ async def generate_cv(
         # Create DOCX file
         output_path = generate_cv_file(cv_text, f"{name.replace(' ', '_')}_resume.docx")
 
-        # Upload to storage
-        upload_result = upload_file(output_path, f"generated_{name.replace(' ', '_')}_resume.docx", user.id)
+        # Upload to storage WITH ACCESS TOKEN
+        upload_result = upload_file(output_path, f"generated_{name.replace(' ', '_')}_resume.docx", user.id, access_token)
         original_cv_storage_path = upload_result.get("path") if upload_result["success"] else None
 
         # Clean up temp file
@@ -234,8 +234,8 @@ async def generate_cv(
                 "user": user
             })
         else:
-            # No job description, just download the generated CV
-            download_url_result = get_file_url(original_cv_storage_path)
+            # No job description, just download the generated CV WITH ACCESS TOKEN
+            download_url_result = get_file_url(original_cv_storage_path, access_token)
             download_url = download_url_result.get("url") if download_url_result["success"] else None
 
             return templates.TemplateResponse("download.html", {
@@ -363,9 +363,9 @@ async def process_changes(
         # Modify CV
         output_path, improved_text = modify_cv(cv_text, valid_suggestions, filename)
 
-        # Upload to storage
+        # Upload to storage WITH ACCESS TOKEN
         improved_filename = f"improved_{filename}"
-        upload_result = upload_file(output_path, improved_filename, user.id)
+        upload_result = upload_file(output_path, improved_filename, user.id, access_token)
 
         if not upload_result["success"]:
             print(f"Upload failed: {upload_result.get('error')}")
@@ -373,8 +373,8 @@ async def process_changes(
 
         improved_cv_storage_path = upload_result.get("path")
 
-        # Get download URL
-        url_result = get_file_url(improved_cv_storage_path)
+        # Get download URL WITH ACCESS TOKEN
+        url_result = get_file_url(improved_cv_storage_path, access_token)
 
         if not url_result["success"]:
             print(f"Get URL failed: {url_result.get('error')}")
@@ -399,6 +399,7 @@ async def process_changes(
         print(f"Process changes error: {str(e)}")
         return f"<p>Error: {str(e)}</p>"
 
+
 # ==================== FILE DOWNLOAD ====================
 
 @app.get("/download-file/{path:path}")
@@ -408,9 +409,9 @@ async def download_stored_file(path: str, access_token: Optional[str] = Cookie(N
         return RedirectResponse(url="/login", status_code=303)
 
     try:
-        # Download from Supabase storage
+        # Download from Supabase storage WITH ACCESS TOKEN
         temp_path = f"/tmp/{path.split('/')[-1]}"
-        result = download_file(path, temp_path)
+        result = download_file(path, temp_path, access_token)
 
         if result["success"]:
             return FileResponse(
