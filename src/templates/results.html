@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JobFit - Analysis Results</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Analysis Results</h1>
+
+        <div class="score-card">
+            <div class="score-number" style="color: {{ score_color }}">{{ score }}</div>
+            <div class="score-label">Match Score</div>
+        </div>
+
+        <div class="section">
+            <h3>✅ Matching Skills</h3>
+            <div class="tags matching">
+                {% if matching_skills %}
+                    {% for skill in matching_skills %}
+                        <span class="tag">{{ skill }}</span>
+                    {% endfor %}
+                {% else %}
+                    <span class="tag">None found</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>❌ Missing Skills</h3>
+            <div class="tags missing">
+                {% if missing_skills %}
+                    {% for skill in missing_skills %}
+                        <span class="tag">{{ skill }}</span>
+                    {% endfor %}
+                {% else %}
+                    <span class="tag">None</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <form action="/apply-changes" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="cv_text" value="{{ cv_text }}">
+            <input type="hidden" name="filename" value="{{ filename }}">
+
+            <div class="section">
+                <h3>💡 Select Improvements to Apply</h3>
+                {% for suggestion in suggestions %}
+                    <div class="suggestion-item">
+                        <input type="checkbox" id="sugg_{{ loop.index0 }}" name="suggestions" value="{{ suggestion }}" checked>
+                        <label for="sugg_{{ loop.index0 }}">{{ suggestion }}</label>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <button type="submit" class="apply-btn">✨ Apply Selected Changes</button>
+        </form>
+
+        <div class="section">
+            <h3>📝 Cover Letter Points</h3>
+            <ul>
+                {% for point in cover_letter_points %}
+                    <li>{{ point }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <a href="/" class="back-btn">← Analyze Another Resume</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JobFit - Edit Improvements</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <style>
+        .edit-textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            margin-top: 10px;
+        }
+        .edit-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .suggestion-edit-item {
+            padding: 15px;
+            background: #f8f9fa;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+        .suggestion-edit-item label {
+            font-weight: 600;
+            color: #333;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .remove-btn:hover {
+            background: #c82333;
+        }
+        .add-more-btn {
+            width: 100%;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .add-more-btn:hover {
+            background: #5568d3;
+        }
+        #suggestions-container {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✏️ Edit Your Improvements</h1>
+
+        <form action="/process-changes" method="post">
+            <input type="hidden" name="cv_text" value="{{ cv_text }}">
+            <input type="hidden" name="filename" value="{{ filename }}">
+
+            <div class="section">
+                <h3>Edit or remove the improvements you want to apply:</h3>
+
+                <div id="suggestions-container">
+                    {% for suggestion in suggestions %}
+                        <div class="suggestion-edit-item">
+                            <label>Improvement {{ loop.index }}:</label>
+                            <textarea name="suggestions" class="edit-textarea">{{ suggestion }}</textarea>
+                            <button type="button" class="remove-btn" onclick="this.parentElement.remove(); updateLabels()">🗑️ Remove This</button>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <button type="button" class="add-more-btn" onclick="addNewSuggestion()">➕ Add More Improvements</button>
+            </div>
+
+            <button type="submit" class="apply-btn">✨ Apply Changes to Resume</button>
+        </form>
+
+        <a href="/" class="back-btn">← Start Over</a>
+    </div>
+
+    <script>
+        let suggestionCount = {{ suggestions|length }};
+
+        function addNewSuggestion() {
+            suggestionCount++;
+            const container = document.getElementById('suggestions-container');
+            const newItem = document.createElement('div');
+            newItem.className = 'suggestion-edit-item';
+            newItem.innerHTML = `
+                <label>Improvement ${suggestionCount}:</label>
+                <textarea name="suggestions" class="edit-textarea" placeholder="Type your custom improvement here..."></textarea>
+                <button type="button" class="remove-btn" onclick="this.parentElement.remove(); updateLabels()">🗑️ Remove This</button>
+            `;
+            container.appendChild(newItem);
+        }
+
+        function updateLabels() {
+            const items = document.querySelectorAll('.suggestion-edit-item');
+            items.forEach((item, index) => {
+                item.querySelector('label').textContent = `Improvement ${index + 1}:`;
+            });
+            suggestionCount = items.length;
+        }
+
+        // Remove empty textareas before submitting
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const textareas = document.querySelectorAll('.edit-textarea');
+            textareas.forEach(textarea => {
+                if (!textarea.value.trim()) {
+                    textarea.parentElement.remove();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
