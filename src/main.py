@@ -1,15 +1,19 @@
 import os
 import tempfile
 from pathlib import Path
-from typing import List
-from fastapi import FastAPI, UploadFile, File, Form, Request
-from fastapi.responses import HTMLResponse, FileResponse
+from typing import List, Optional
+from fastapi import FastAPI, UploadFile, File, Form, Request, Cookie
+from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from src.services.file_parser import parse_file
 from src.services.ai_analizer import analyze_cv
 from src.services.cv_modifier import modify_cv
+from src.services.auth import signup_user, login_user, get_user_from_token
+from src.services.storage import upload_file, download_file, get_file_url
+from src.services.database import save_analysis, get_user_analyses
+from src.services.cv_builder import build_cv_from_info, generate_cv_file
 
 app = FastAPI(title="JobFit - CV Analyzer")
 
@@ -22,18 +26,243 @@ app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="stat
 # Setup templates
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
-# Store for temporary files (in production, use proper storage)
-temp_storage = {}
 
+def get_current_user(access_token: Optional[str]):
+    """Get current user from cookie"""
+    if not access_token:
+        return None
+    result = get_user_from_token(access_token)
+    if result["success"]:
+        return result["user"]
+    return None
+
+
+# ==================== AUTH ROUTES ====================
+
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+
+@app.post("/login", response_class=HTMLResponse)
+async def login(request: Request, email: str = Form(...), password: str = Form(...)):
+    result = login_user(email, password)
+
+    if result["success"]:
+        response = RedirectResponse(url="/", status_code=303)
+        response.set_cookie(
+            key="access_token",
+            value=result["session"].access_token,
+            httponly=True,
+            max_age=3600 * 24 * 7  # 7 days
+        )
+        return response
+    else:
+        return templates.TemplateResponse("login.html", {
+            "request": request,
+            "error": "Invalid email or password"
+        })
+
+
+@app.get("/signup", response_class=HTMLResponse)
+async def signup_page(request: Request):
+    return templates.TemplateResponse("signup.html", {"request": request})
+
+
+@app.post("/signup", response_class=HTMLResponse)
+async def signup(
+        request: Request,
+        name: str = Form(...),
+        email: str = Form(...),
+        password: str = Form(...)
+):
+    result = signup_user(email, password, name)
+
+    if result["success"]:
+        return templates.TemplateResponse("signup.html", {
+            "request": request,
+            "success": "Account created! Please login."
+        })
+    else:
+        return templates.TemplateResponse("signup.html", {
+            "request": request,
+            "error": f"Failed to create account: {result['error']}"
+        })
+
+
+@app.get("/logout")
+async def logout():
+    response = RedirectResponse(url="/login", status_code=303)
+    response.delete_cookie("access_token")
+    return response
+
+
+# ==================== MAIN ROUTES ====================
 
 @app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+async def home(request: Request, access_token: Optional[str] = Cookie(None)):
+    user = get_current_user(access_token)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+    return templates.TemplateResponse("index.html", {"request": request, "user": user})
 
+
+@app.get("/upload", response_class=HTMLResponse)
+async def upload_page(request: Request, access_token: Optional[str] = Cookie(None)):
+    user = get_current_user(access_token)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+    return templates.TemplateResponse("upload.html", {"request": request, "user": user})
+
+
+@app.get("/create", response_class=HTMLResponse)
+async def create_page(request: Request, access_token: Optional[str] = Cookie(None)):
+    user = get_current_user(access_token)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+    return templates.TemplateResponse("create.html", {"request": request, "user": user})
+
+
+@app.get("/history", response_class=HTMLResponse)
+async def history_page(request: Request, access_token: Optional[str] = Cookie(None)):
+    user = get_current_user(access_token)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+
+    # Get user's analyses from database
+    analyses = get_user_analyses(user.id)
+
+    return templates.TemplateResponse("history.html", {
+        "request": request,
+        "user": user,
+        "analyses": analyses
+    })
+
+
+# ==================== CV GENERATION ====================
+
+@app.post("/generate-cv", response_class=HTMLResponse)
+async def generate_cv(
+        request: Request,
+        name: str = Form(...),
+        email: str = Form(...),
+        phone: str = Form(...),
+        linkedin: str = Form(""),
+        summary: str = Form(...),
+        job_title_1: str = Form(...),
+        company_1: str = Form(...),
+        duration_1: str = Form(...),
+        responsibilities_1: str = Form(...),
+        degree: str = Form(...),
+        university: str = Form(...),
+        grad_year: str = Form(...),
+        skills: str = Form(...),
+        job_description: str = Form(""),
+        access_token: Optional[str] = Cookie(None)
+):
+    user = get_current_user(access_token)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+
+    try:
+        # Build CV data
+        cv_data = {
+            "name": name,
+            "email": email,
+            "phone": phone,
+            "linkedin": linkedin,
+            "summary": summary,
+            "experience": [{
+                "title": job_title_1,
+                "company": company_1,
+                "duration": duration_1,
+                "responsibilities": responsibilities_1
+            }],
+            "education": {
+                "degree": degree,
+                "university": university,
+                "year": grad_year
+            },
+            "skills": skills
+        }
+
+        # Generate CV text with AI
+        cv_text = build_cv_from_info(cv_data)
+
+        # Create DOCX file
+        output_path = generate_cv_file(cv_text, f"{name.replace(' ', '_')}_resume.docx")
+
+        # Upload to storage
+        upload_result = upload_file(output_path, f"generated_{name.replace(' ', '_')}_resume.docx", user.id)
+        original_cv_storage_path = upload_result.get("path") if upload_result["success"] else None
+
+        # Clean up temp file
+        os.unlink(output_path)
+
+        # If job description provided, analyze it
+        if job_description.strip():
+            result = analyze_cv(cv_text, job_description, save_to_db=False)
+
+            # Save analysis
+            save_analysis(
+                user_id=user.id,
+                job_description=job_description,
+                analysis_result=result,
+                original_cv_path=original_cv_storage_path
+            )
+
+            # Calculate score color
+            score = result.get('match_score', 0)
+            if score >= 70:
+                score_color = "#10b981"
+            elif score >= 50:
+                score_color = "#f59e0b"
+            else:
+                score_color = "#ef4444"
+
+            return templates.TemplateResponse("results.html", {
+                "request": request,
+                "score": score,
+                "score_color": score_color,
+                "matching_skills": result.get('matching_skills', []),
+                "missing_skills": result.get('missing_skills', []),
+                "suggestions": result.get('suggestions', []),
+                "cover_letter_points": result.get('cover_letter_points', []),
+                "cv_text": cv_text,
+                "filename": f"{name.replace(' ', '_')}_resume.docx",
+                "original_cv_path": original_cv_storage_path,
+                "user": user
+            })
+        else:
+            # No job description, just download the generated CV
+            download_url_result = get_file_url(original_cv_storage_path)
+            download_url = download_url_result.get("url") if download_url_result["success"] else None
+
+            return templates.TemplateResponse("download.html", {
+                "request": request,
+                "filename": f"{name.replace(' ', '_')}_resume.docx",
+                "improved_text": cv_text,
+                "download_url": download_url,
+                "user": user
+            })
+
+    except Exception as e:
+        return f"<p>Error: {str(e)}</p>"
+
+
+# ==================== CV ANALYSIS ====================
 
 @app.post("/analyze", response_class=HTMLResponse)
-async def analyze(request: Request, cv_file: UploadFile = File(...), job_description: str = Form(...)):
-    # Save uploaded file temporarily
+async def analyze(
+        request: Request,
+        cv_file: UploadFile = File(...),
+        job_description: str = Form(...),
+        access_token: Optional[str] = Cookie(None)
+):
+    user = get_current_user(access_token)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+
     suffix = os.path.splitext(cv_file.filename)[1]
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
         content = await cv_file.read()
@@ -41,23 +270,33 @@ async def analyze(request: Request, cv_file: UploadFile = File(...), job_descrip
         tmp_path = tmp.name
 
     try:
-        # Parse the CV
-        cv_text = parse_file(tmp_path)
+        # Upload with access token
+        upload_result = upload_file(tmp_path, f"original_{cv_file.filename}", user.id, access_token)
+        original_cv_storage_path = upload_result.get("path") if upload_result["success"] else None
 
-        # Analyze with AI
-        result = analyze_cv(cv_text, job_description)
+        # Parse and analyze
+        cv_text = parse_file(tmp_path)
+        result = analyze_cv(cv_text, job_description, save_to_db=False)
 
         if "error" in result:
             return f"<p>Error: {result['error']}</p>"
 
+        # Save to database
+        save_analysis(
+            user_id=user.id,
+            job_description=job_description,
+            analysis_result=result,
+            original_cv_path=original_cv_storage_path
+        )
+
         # Calculate score color
         score = result.get('match_score', 0)
         if score >= 70:
-            score_color = "#28a745"
+            score_color = "#10b981"
         elif score >= 50:
-            score_color = "#ffc107"
+            score_color = "#f59e0b"
         else:
-            score_color = "#dc3545"
+            score_color = "#ef4444"
 
         return templates.TemplateResponse("results.html", {
             "request": request,
@@ -68,7 +307,9 @@ async def analyze(request: Request, cv_file: UploadFile = File(...), job_descrip
             "suggestions": result.get('suggestions', []),
             "cover_letter_points": result.get('cover_letter_points', []),
             "cv_text": cv_text,
-            "filename": cv_file.filename
+            "filename": cv_file.filename,
+            "original_cv_path": original_cv_storage_path,
+            "user": user
         })
 
     except Exception as e:
@@ -82,14 +323,21 @@ async def apply_changes(
         request: Request,
         cv_text: str = Form(...),
         filename: str = Form(...),
-        suggestions: List[str] = Form(...)
+        original_cv_path: str = Form(...),
+        suggestions: List[str] = Form(...),
+        access_token: Optional[str] = Cookie(None)
 ):
-    """Show edit page for suggestions"""
+    user = get_current_user(access_token)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+
     return templates.TemplateResponse("edit_suggestions.html", {
         "request": request,
         "cv_text": cv_text,
         "filename": filename,
-        "suggestions": suggestions
+        "original_cv_path": original_cv_path,
+        "suggestions": suggestions,
+        "user": user
     })
 
 
@@ -98,11 +346,15 @@ async def process_changes(
         request: Request,
         cv_text: str = Form(...),
         filename: str = Form(...),
-        suggestions: List[str] = Form(...)
+        original_cv_path: str = Form(...),
+        suggestions: List[str] = Form(...),
+        access_token: Optional[str] = Cookie(None)
 ):
-    """Actually modify the CV with edited suggestions"""
+    user = get_current_user(access_token)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+
     try:
-        # Filter out empty suggestions
         valid_suggestions = [s.strip() for s in suggestions if s.strip()]
 
         if not valid_suggestions:
@@ -111,31 +363,65 @@ async def process_changes(
         # Modify CV
         output_path, improved_text = modify_cv(cv_text, valid_suggestions, filename)
 
-        # Store the file path temporarily
-        temp_storage[filename] = output_path
+        # Upload to storage
+        improved_filename = f"improved_{filename}"
+        upload_result = upload_file(output_path, improved_filename, user.id)
+
+        if not upload_result["success"]:
+            print(f"Upload failed: {upload_result.get('error')}")
+            return f"<p>Error uploading file: {upload_result.get('error')}</p>"
+
+        improved_cv_storage_path = upload_result.get("path")
+
+        # Get download URL
+        url_result = get_file_url(improved_cv_storage_path)
+
+        if not url_result["success"]:
+            print(f"Get URL failed: {url_result.get('error')}")
+            return f"<p>Error getting download URL: {url_result.get('error')}</p>"
+
+        download_url = url_result.get("url")
+
+        print(f"Download URL: {download_url}")  # Debug
+
+        # Clean up
+        os.unlink(output_path)
 
         return templates.TemplateResponse("download.html", {
             "request": request,
-            "filename": filename,
-            "improved_text": improved_text
+            "filename": improved_filename,
+            "improved_text": improved_text,
+            "download_url": download_url,
+            "user": user
         })
 
     except Exception as e:
+        print(f"Process changes error: {str(e)}")
         return f"<p>Error: {str(e)}</p>"
 
+# ==================== FILE DOWNLOAD ====================
 
-@app.get("/download/{filename}")
-async def download_file(filename: str):
-    """Download the improved CV"""
-    if filename not in temp_storage:
-        return {"error": "File not found"}
+@app.get("/download-file/{path:path}")
+async def download_stored_file(path: str, access_token: Optional[str] = Cookie(None)):
+    user = get_current_user(access_token)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
 
-    file_path = temp_storage[filename]
-    return FileResponse(
-        path=file_path,
-        filename=f"improved_{filename}",
-        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    )
+    try:
+        # Download from Supabase storage
+        temp_path = f"/tmp/{path.split('/')[-1]}"
+        result = download_file(path, temp_path)
+
+        if result["success"]:
+            return FileResponse(
+                path=temp_path,
+                filename=path.split('/')[-1],
+                media_type="application/octet-stream"
+            )
+        else:
+            return {"error": "File not found"}
+    except Exception as e:
+        return {"error": str(e)}
 
 
 if __name__ == "__main__":

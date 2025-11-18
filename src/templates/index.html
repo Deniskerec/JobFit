@@ -5,38 +5,70 @@
     <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body>
-    <div class="container">
-        <div class="logo">
-            <h1>JobFit</h1>
-            <p>AI-Powered Resume Analyzer</p>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-brand">✨ JobFit</a>
+            <div class="navbar-menu">
+                <a href="/" class="navbar-link active">Home</a>
+                <a href="/history" class="navbar-link">My Analyses</a>
+                <div class="navbar-user">
+                    <div class="navbar-user-icon">{{ user.email[0] }}</div>
+                    <div class="navbar-user-info">
+                        <div class="navbar-user-name">{{ user.user_metadata.name or user.email }}</div>
+                        <div class="navbar-user-email">{{ user.email }}</div>
+                    </div>
+                </div>
+                <a href="/logout" class="navbar-logout">Logout</a>
+            </div>
         </div>
+    </nav>
 
-        <form action="/analyze" method="post" enctype="multipart/form-data">
-            <label>Upload Your Resume</label>
-            <input type="file" name="cv_file" accept=".pdf,.docx" required>
-
-            <label>Job Description</label>
-            <textarea name="job_description" placeholder="Paste the job description here..." required></textarea>
-
-            <button type="submit">🚀 Analyze My Resume</button>
-        </form>
-
-        <div class="features">
-            <div class="feature">
-                <div class="feature-icon">🎯</div>
-                <div class="feature-text">Match Score</div>
+    <div class="main-wrapper">
+        <div class="container container-wide">
+            <div class="hero">
+                <h1>🚀 Optimize Your Resume with AI</h1>
+                <p>Get instant feedback and improve your chances of landing your dream job</p>
             </div>
-            <div class="feature">
-                <div class="feature-icon">💡</div>
-                <div class="feature-text">Smart Suggestions</div>
+
+            <div class="options-grid">
+                <a href="/upload" class="option-card">
+                    <div class="option-card-icon">📄</div>
+                    <h3>Upload Existing Resume</h3>
+                    <p>Have a resume ready? Upload it and get instant AI-powered analysis and improvements</p>
+                </a>
+
+                <a href="/create" class="option-card">
+                    <div class="option-card-icon">✍️</div>
+                    <h3>Build New Resume</h3>
+                    <p>Don't have a resume? Fill out your details and let AI create a professional one for you</p>
+                </a>
             </div>
-            <div class="feature">
-                <div class="feature-icon">✅</div>
-                <div class="feature-text">Skill Analysis</div>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">📝</div>
-                <div class="feature-text">Cover Letter Tips</div>
+
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">🎯</div>
+                    <div class="feature-text">Match Score Analysis</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">💡</div>
+                    <div class="feature-text">Smart AI Suggestions</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">✅</div>
+                    <div class="feature-text">Skills Gap Detection</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">📝</div>
+                    <div class="feature-text">Cover Letter Tips</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-text">Track Your Progress</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🔒</div>
+                    <div class="feature-text">Secure & Private</div>
+                </div>
             </div>
         </div>
     </div>

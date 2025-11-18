@@ -3,63 +3,50 @@
 <head>
     <title>JobFit - Download Ready</title>
     <link rel="stylesheet" href="/static/css/styles.css">
-    <style>
-        .success-icon {
-            font-size: 72px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .download-btn {
-            width: 100%;
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            color: white;
-            padding: 20px;
-            border: none;
-            border-radius: 10px;
-            font-size: 20px;
-            font-weight: 600;
-            cursor: pointer;
-            margin: 20px 0;
-            text-decoration: none;
-            display: block;
-            text-align: center;
-        }
-        .download-btn:hover {
-            transform: translateY(-2px);
-        }
-        .preview-section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .preview-section pre {
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            font-family: inherit;
-            font-size: 14px;
-        }
-    </style>
 </head>
 <body>
-    <div class="container">
-        <div class="success-icon">✅</div>
-        <h1>Your Resume Has Been Improved!</h1>
-
-        <a href="/download/{{ filename }}" class="download-btn">
-            📥 Download Improved Resume
-        </a>
-
-        <div class="section">
-            <h3>Preview of Changes:</h3>
-            <div class="preview-section">
-                <pre>{{ improved_text }}</pre>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-brand">✨ JobFit</a>
+            <div class="navbar-menu">
+                <a href="/" class="navbar-link">Home</a>
+                <a href="/history" class="navbar-link">My Analyses</a>
+                <div class="navbar-user">
+                    <div class="navbar-user-icon">{{ user.email[0] }}</div>
+                    <div class="navbar-user-info">
+                        <div class="navbar-user-name">{{ user.user_metadata.name or user.email }}</div>
+                        <div class="navbar-user-email">{{ user.email }}</div>
+                    </div>
+                </div>
+                <a href="/logout" class="navbar-logout">Logout</a>
             </div>
         </div>
+    </nav>
 
-        <a href="/" class="back-btn">← Analyze Another Resume</a>
+    <div class="main-wrapper">
+        <div class="container">
+            <div class="success-icon">✅</div>
+            <h1>Your Resume is Ready!</h1>
+            <p style="text-align: center; color: var(--gray-500); margin-bottom: 32px;">
+                Your improved resume has been generated with AI-powered enhancements
+            </p>
+
+            <a href="{{ download_url }}" class="btn btn-success" download style="margin-bottom: 24px;">
+                📥 Download Improved Resume
+            </a>
+
+            <div class="section">
+                <h3>👀 Preview of Changes</h3>
+                <div class="preview-section">
+                    <pre>{{ improved_text }}</pre>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px;">
+                <a href="/" class="btn btn-outline">🏠 Back to Home</a>
+                <a href="/history" class="btn btn-outline">📊 View My History</a>
+            </div>
+        </div>
     </div>
 </body>
 </html>

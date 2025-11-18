@@ -1,0 +1,58 @@
+<!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h3>🤖 AI is Creating Your Resume...</h3>
+            <p>This may take 20-40 seconds</p>
+            <div class="loading-steps">
+                <div class="loading-step active" id="step1">
+                    <span class="loading-step-icon">⏳</span>
+                    <span>Processing your information...</span>
+                </div>
+                <div class="loading-step" id="step2">
+                    <span class="loading-step-icon">⏳</span>
+                    <span>Formatting resume professionally...</span>
+                </div>
+                <div class="loading-step" id="step3">
+                    <span class="loading-step-icon">⏳</span>
+                    <span>Optimizing content...</span>
+                </div>
+                <div class="loading-step" id="step4">
+                    <span class="loading-step-icon">⏳</span>
+                    <span>Creating document...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.querySelector('form');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        form.addEventListener('submit', function() {
+            loadingOverlay.classList.add('active');
+
+            setTimeout(() => {
+                document.getElementById('step1').classList.add('complete');
+                document.getElementById('step1').classList.remove('active');
+                document.getElementById('step1').querySelector('.loading-step-icon').textContent = '✓';
+                document.getElementById('step2').classList.add('active');
+            }, 3000);
+
+            setTimeout(() => {
+                document.getElementById('step2').classList.add('complete');
+                document.getElementById('step2').classList.remove('active');
+                document.getElementById('step2').querySelector('.loading-step-icon').textContent = '✓';
+                document.getElementById('step3').classList.add('active');
+            }, 7000);
+
+            setTimeout(() => {
+                document.getElementById('step3').classList.add('complete');
+                document.getElementById('step3').classList.remove('active');
+                document.getElementById('step3').querySelector('.loading-step-icon').textContent = '✓';
+                document.getElementById('step4').classList.add('active');
+            }, 12000);
+        });
+    </script>
+</body>
+</html>
