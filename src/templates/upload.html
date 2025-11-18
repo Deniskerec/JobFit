@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JobFit - Upload Resume</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-brand">✨ JobFit</a>
+            <div class="navbar-menu">
+                <a href="/" class="navbar-link">Home</a>
+                <a href="/history" class="navbar-link">My Analyses</a>
+                <div class="navbar-user">
+                    <div class="navbar-user-icon">{{ user.email[0] }}</div>
+                    <div class="navbar-user-info">
+                        <div class="navbar-user-name">{{ user.user_metadata.name or user.email }}</div>
+                        <div class="navbar-user-email">{{ user.email }}</div>
+                    </div>
+                </div>
+                <a href="/logout" class="navbar-logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-wrapper">
+        <div class="container">
+            <h1>📄 Upload Your Resume</h1>
+
+            <form id="uploadForm" action="/analyze" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>📎 Upload Your Resume (PDF or DOCX)</label>
+                    <input type="file" name="cv_file" accept=".pdf,.docx" required>
+                </div>
+
+                <div class="form-group">
+                    <label>💼 Job Description</label>
+                    <textarea name="job_description" placeholder="Paste the job description here..." required></textarea>
+                </div>
+
+                <button type="submit">🚀 Analyze My Resume</button>
+            </form>
+
+            <a href="/" class="back-btn">← Back to Home</a>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h3>🤖 AI is Analyzing...</h3>
+            <p>This may take 10-30 seconds</p>
+            <div class="loading-steps">
+                <div class="loading-step active" id="step1">
+                    <span class="loading-step-icon">⏳</span>
+                    <span>Reading your resume...</span>
+                </div>
+                <div class="loading-step" id="step2">
+                    <span class="loading-step-icon">⏳</span>
+                    <span>Analyzing content...</span>
+                </div>
+                <div class="loading-step" id="step3">
+                    <span class="loading-step-icon">⏳</span>
+                    <span>Generating suggestions...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        form.addEventListener('submit', function() {
+            loadingOverlay.classList.add('active');
+
+            // Simulate progress steps
+            setTimeout(() => {
+                document.getElementById('step1').classList.add('complete');
+                document.getElementById('step1').classList.remove('active');
+                document.getElementById('step1').querySelector('.loading-step-icon').textContent = '✓';
+                document.getElementById('step2').classList.add('active');
+            }, 2000);
+
+            setTimeout(() => {
+                document.getElementById('step2').classList.add('complete');
+                document.getElementById('step2').classList.remove('active');
+                document.getElementById('step2').querySelector('.loading-step-icon').textContent = '✓';
+                document.getElementById('step3').classList.add('active');
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

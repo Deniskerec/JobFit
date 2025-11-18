@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JobFit - My Analyses</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-brand">✨ JobFit</a>
+            <div class="navbar-menu">
+                <a href="/" class="navbar-link">Home</a>
+                <a href="/history" class="navbar-link active">My Analyses</a>
+                <div class="navbar-user">
+                    <div class="navbar-user-icon">{{ user.email[0] }}</div>
+                    <div class="navbar-user-info">
+                        <div class="navbar-user-name">{{ user.user_metadata.name or user.email }}</div>
+                        <div class="navbar-user-email">{{ user.email }}</div>
+                    </div>
+                </div>
+                <a href="/logout" class="navbar-logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-wrapper">
+        <div class="container container-wide">
+            <h1>📊 My Resume Analyses</h1>
+
+            {% if analyses %}
+                <div style="display: grid; gap: 20px;">
+                    {% for analysis in analyses %}
+                        <div class="option-card" style="text-align: left; display: block;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+                                <div>
+                                    <h3 style="margin: 0 0 8px 0;">Analysis #{{ analysis.id }}</h3>
+                                    <p style="color: var(--gray-500); font-size: 14px; margin: 0;">
+                                        📅 {{ analysis.created_at[:10] }}
+                                    </p>
+                                </div>
+                                <div style="font-size: 32px; font-weight: bold; color:
+                                    {% if analysis.match_score >= 70 %}var(--success)
+                                    {% elif analysis.match_score >= 50 %}var(--warning)
+                                    {% else %}var(--danger){% endif %};">
+                                    {{ analysis.match_score }}
+                                </div>
+                            </div>
+
+                            <p style="color: var(--gray-700); margin-bottom: 16px; line-height: 1.5;">
+                                <strong>Job:</strong> {{ analysis.job_description[:100] }}{% if analysis.job_description|length > 100 %}...{% endif %}
+                            </p>
+
+                            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                {% if analysis.original_cv_path %}
+                                    <a href="/download-file/{{ analysis.original_cv_path }}" class="btn btn-small btn-outline">
+                                        📄 Original CV
+                                    </a>
+                                {% endif %}
+                                {% if analysis.improved_cv_path %}
+                                    <a href="/download-file/{{ analysis.improved_cv_path }}" class="btn btn-small btn-success">
+                                        ✨ Improved CV
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div style="text-align: center; padding: 60px 20px;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">📭</div>
+                    <h2 style="color: var(--gray-700); margin-bottom: 12px;">No analyses yet</h2>
+                    <p style="color: var(--gray-500); margin-bottom: 24px;">
+                        Start by uploading or creating your first resume
+                    </p>
+                    <a href="/" class="btn btn-small">🚀 Get Started</a>
+                </div>
+            {% endif %}
+
+            <a href="/" class="back-btn">← Back to Home</a>
+        </div>
+    </div>
+</body>
+</html>

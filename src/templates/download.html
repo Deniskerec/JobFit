@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JobFit - Download Ready</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-brand">✨ JobFit</a>
+            <div class="navbar-menu">
+                <a href="/" class="navbar-link">Home</a>
+                <a href="/history" class="navbar-link">My Analyses</a>
+                <div class="navbar-user">
+                    <div class="navbar-user-icon">{{ user.email[0] }}</div>
+                    <div class="navbar-user-info">
+                        <div class="navbar-user-name">{{ user.user_metadata.name or user.email }}</div>
+                        <div class="navbar-user-email">{{ user.email }}</div>
+                    </div>
+                </div>
+                <a href="/logout" class="navbar-logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-wrapper">
+        <div class="container">
+            <div class="success-icon">✅</div>
+            <h1>Your Resume is Ready!</h1>
+            <p style="text-align: center; color: var(--gray-500); margin-bottom: 32px;">
+                Your improved resume has been generated with AI-powered enhancements
+            </p>
+
+            <a href="{{ download_url }}" class="btn btn-success" download style="margin-bottom: 24px;">
+                📥 Download Improved Resume
+            </a>
+
+            <div class="section">
+                <h3>👀 Preview of Changes</h3>
+                <div class="preview-section">
+                    <pre>{{ improved_text }}</pre>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px;">
+                <a href="/" class="btn btn-outline">🏠 Back to Home</a>
+                <a href="/history" class="btn btn-outline">📊 View My History</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

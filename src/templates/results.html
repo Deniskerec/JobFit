@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JobFit - Analysis Results</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-brand">✨ JobFit</a>
+            <div class="navbar-menu">
+                <a href="/" class="navbar-link">Home</a>
+                <a href="/history" class="navbar-link">My Analyses</a>
+                <div class="navbar-user">
+                    <div class="navbar-user-icon">{{ user.email[0] }}</div>
+                    <div class="navbar-user-info">
+                        <div class="navbar-user-name">{{ user.user_metadata.name or user.email }}</div>
+                        <div class="navbar-user-email">{{ user.email }}</div>
+                    </div>
+                </div>
+                <a href="/logout" class="navbar-logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-wrapper">
+        <div class="container">
+            <h1>📊 Your Resume Analysis</h1>
+
+            <div class="score-card">
+                <div class="score-number" style="color: {{ score_color }}">{{ score }}</div>
+                <div class="score-label">Match Score</div>
+            </div>
+
+            <div class="section">
+                <h3>✅ Matching Skills</h3>
+                <div class="tags matching">
+                    {% if matching_skills %}
+                        {% for skill in matching_skills %}
+                            <span class="tag">✓ {{ skill }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="tag">None found</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>❌ Missing Skills</h3>
+                <div class="tags missing">
+                    {% if missing_skills %}
+                        {% for skill in missing_skills %}
+                            <span class="tag">✗ {{ skill }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="tag">None</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <form action="/apply-changes" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="cv_text" value="{{ cv_text }}">
+                <input type="hidden" name="filename" value="{{ filename }}">
+                <input type="hidden" name="original_cv_path" value="{{ original_cv_path }}">
+
+                <div class="section">
+                    <h3>💡 Select Improvements to Apply</h3>
+                    {% for suggestion in suggestions %}
+                        <div class="suggestion-item">
+                            <input type="checkbox" id="sugg_{{ loop.index0 }}" name="suggestions" value="{{ suggestion }}" checked>
+                            <label for="sugg_{{ loop.index0 }}">{{ suggestion }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <button type="submit" class="btn-success">✨ Apply Selected Changes</button>
+            </form>
+
+            <div class="section" style="margin-top: 32px;">
+                <h3>📝 Cover Letter Points</h3>
+                <ul>
+                    {% for point in cover_letter_points %}
+                        <li>{{ point }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <a href="/" class="back-btn">← Analyze Another Resume</a>
+        </div>
+    </div>
+</body>
+</html>

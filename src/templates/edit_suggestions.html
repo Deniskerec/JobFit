@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JobFit - Edit Improvements</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-brand">✨ JobFit</a>
+            <div class="navbar-menu">
+                <a href="/" class="navbar-link">Home</a>
+                <a href="/history" class="navbar-link">My Analyses</a>
+                <div class="navbar-user">
+                    <div class="navbar-user-icon">{{ user.email[0] }}</div>
+                    <div class="navbar-user-info">
+                        <div class="navbar-user-name">{{ user.user_metadata.name or user.email }}</div>
+                        <div class="navbar-user-email">{{ user.email }}</div>
+                    </div>
+                </div>
+                <a href="/logout" class="navbar-logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-wrapper">
+        <div class="container">
+            <h1>✏️ Customize Your Improvements</h1>
+            <p style="text-align: center; color: var(--gray-500); margin-bottom: 32px;">
+                Edit, remove, or add custom improvements before applying them
+            </p>
+
+            <form id="editForm" action="/process-changes" method="post">
+                <input type="hidden" name="cv_text" value="{{ cv_text }}">
+                <input type="hidden" name="filename" value="{{ filename }}">
+                <input type="hidden" name="original_cv_path" value="{{ original_cv_path }}">
+
+                <div class="section">
+                    <h3>📝 Edit Your Improvements</h3>
+
+                    <div id="suggestions-container">
+                        {% for suggestion in suggestions %}
+                            <div class="suggestion-edit-item">
+                                <label>Improvement {{ loop.index }}:</label>
+                                <textarea name="suggestions" class="edit-textarea">{{ suggestion }}</textarea>
+                                <button type="button" class="remove-btn" onclick="this.parentElement.remove(); updateLabels()">🗑️ Remove</button>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="button" class="add-more-btn" onclick="addNewSuggestion()">➕ Add Custom Improvement</button>
+                </div>
+
+                <button type="submit" class="btn-success">✨ Apply Changes to Resume</button>
+            </form>
+
+            <a href="/" class="back-btn">← Start Over</a>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h3>✨ Applying Changes...</h3>
+            <p>AI is improving your resume</p>
+            <div class="loading-steps">
+                <div class="loading-step active" id="step1">
+                    <span class="loading-step-icon">⏳</span>
+                    <span>Reading suggestions...</span>
+                </div>
+                <div class="loading-step" id="step2">
+                    <span class="loading-step-icon">⏳</span>
+                    <span>Rewriting content...</span>
+                </div>
+                <div class="loading-step" id="step3">
+                    <span class="loading-step-icon">⏳</span>
+                    <span>Creating improved resume...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let suggestionCount = {{ suggestions|length }};
+
+        function addNewSuggestion() {
+            suggestionCount++;
+            const container = document.getElementById('suggestions-container');
+            const newItem = document.createElement('div');
+            newItem.className = 'suggestion-edit-item';
+            newItem.innerHTML = `
+                <label>Improvement ${suggestionCount}:</label>
+                <textarea name="suggestions" class="edit-textarea" placeholder="Type your custom improvement here..."></textarea>
+                <button type="button" class="remove-btn" onclick="this.parentElement.remove(); updateLabels()">🗑️ Remove</button>
+            `;
+            container.appendChild(newItem);
+        }
+
+        function updateLabels() {
+            const items = document.querySelectorAll('.suggestion-edit-item');
+            items.forEach((item, index) => {
+                item.querySelector('label').textContent = `Improvement ${index + 1}:`;
+            });
+            suggestionCount = items.length;
+        }
+
+        // Remove empty textareas before submitting
+        const editForm = document.getElementById('editForm');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        editForm.addEventListener('submit', function(e) {
+            // Remove empty suggestions
+            const textareas = document.querySelectorAll('.edit-textarea');
+            textareas.forEach(textarea => {
+                if (!textarea.value.trim()) {
+                    textarea.parentElement.remove();
+                }
+            });
+
+            // Show loading overlay
+            loadingOverlay.classList.add('active');
+
+            // Simulate progress steps
+            setTimeout(() => {
+                document.getElementById('step1').classList.add('complete');
+                document.getElementById('step1').classList.remove('active');
+                document.getElementById('step1').querySelector('.loading-step-icon').textContent = '✓';
+                document.getElementById('step2').classList.add('active');
+            }, 2000);
+
+            setTimeout(() => {
+                document.getElementById('step2').classList.add('complete');
+                document.getElementById('step2').classList.remove('active');
+                document.getElementById('step2').querySelector('.loading-step-icon').textContent = '✓';
+                document.getElementById('step3').classList.add('active');
+            }, 6000);
+        });
+    </script>
+</body>
+</html>
