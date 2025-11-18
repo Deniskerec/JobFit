@@ -11,6 +11,28 @@ client = OpenAI()
 
 def build_cv_from_info(cv_data):
     """Generate CV text from user-provided information"""
+
+    # Build experience section
+    experience_text = ""
+    if cv_data.get('experience') and len(cv_data['experience']) > 0:
+        exp = cv_data['experience'][0]
+        if exp.get('title') and exp.get('title') != 'N/A':
+            experience_text = f"""
+WORK EXPERIENCE:
+{exp['title']} | {exp['company']} | {exp['duration']}
+{exp['responsibilities']}
+"""
+
+    # Build education section
+    education_text = ""
+    if cv_data.get('education') and cv_data['education'].get('degree') and cv_data['education']['degree'] != 'N/A':
+        edu = cv_data['education']
+        education_text = f"""
+EDUCATION:
+{edu['degree']}
+{edu['university']} | {edu['year']}
+"""
+
     prompt = f"""
 You are a professional resume writer. Create a polished, professional resume based on the following information:
 
@@ -22,13 +44,9 @@ LINKEDIN: {cv_data.get('linkedin', '')}
 PROFESSIONAL SUMMARY:
 {cv_data['summary']}
 
-WORK EXPERIENCE:
-{cv_data['experience'][0]['title']} | {cv_data['experience'][0]['company']} | {cv_data['experience'][0]['duration']}
-{cv_data['experience'][0]['responsibilities']}
+{experience_text}
 
-EDUCATION:
-{cv_data['education']['degree']}
-{cv_data['education']['university']} | {cv_data['education']['year']}
+{education_text}
 
 SKILLS:
 {cv_data['skills']}
@@ -38,15 +56,17 @@ Format the resume professionally using these markers:
 - For bold text: **text**
 - For bullet points: start line with "• "
 
-Create a complete, professional resume.
+Create a complete, professional resume. If there is no work experience or education provided, focus on skills, summary, and potential. Make it compelling for entry-level positions.
 """
 
-    response = client.responses.create(
-        model="gpt-5-nano-2025-08-07",
-        input=prompt
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "user", "content": prompt}
+        ]
     )
 
-    return response.output_text
+    return response.choices[0].message.content
 
 
 def generate_cv_file(cv_text, filename):

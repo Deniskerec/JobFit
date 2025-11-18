@@ -180,13 +180,13 @@ async def generate_cv(
         phone: str = Form(...),
         linkedin: str = Form(""),
         summary: str = Form(...),
-        job_title_1: str = Form(...),
-        company_1: str = Form(...),
-        duration_1: str = Form(...),
-        responsibilities_1: str = Form(...),
-        degree: str = Form(...),
-        university: str = Form(...),
-        grad_year: str = Form(...),
+        job_title_1: str = Form(""),
+        company_1: str = Form(""),
+        duration_1: str = Form(""),
+        responsibilities_1: str = Form(""),
+        degree: str = Form(""),
+        university: str = Form(""),
+        grad_year: str = Form(""),
         skills: str = Form(...),
         job_description: str = Form(""),
         access_token: Optional[str] = Cookie(None)
@@ -203,19 +203,27 @@ async def generate_cv(
             "phone": phone,
             "linkedin": linkedin,
             "summary": summary,
-            "experience": [{
-                "title": job_title_1,
-                "company": company_1,
-                "duration": duration_1,
-                "responsibilities": responsibilities_1
-            }],
-            "education": {
-                "degree": degree,
-                "university": university,
-                "year": grad_year
-            },
+            "experience": [],
+            "education": {},
             "skills": skills
         }
+
+        # Only add experience if provided
+        if job_title_1 and job_title_1.strip():
+            cv_data["experience"].append({
+                "title": job_title_1,
+                "company": company_1 or "N/A",
+                "duration": duration_1 or "N/A",
+                "responsibilities": responsibilities_1 or "N/A"
+            })
+
+        # Only add education if provided
+        if degree and degree.strip():
+            cv_data["education"] = {
+                "degree": degree,
+                "university": university or "N/A",
+                "year": grad_year or "N/A"
+            }
 
         # Generate CV text with AI
         cv_text = build_cv_from_info(cv_data)
@@ -266,7 +274,7 @@ async def generate_cv(
                 "user": user
             })
         else:
-            # No job description, just download the generated CV WITH ACCESS TOKEN
+            # No job description, just download the generated CV
             download_url_result = get_file_url(original_cv_storage_path, access_token)
             download_url = download_url_result.get("url") if download_url_result["success"] else None
 
@@ -279,8 +287,10 @@ async def generate_cv(
             })
 
     except Exception as e:
+        print(f"Generate CV error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return f"<p>Error: {str(e)}</p>"
-
 
 # ==================== CV ANALYSIS ====================
 
