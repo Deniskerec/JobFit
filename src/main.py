@@ -12,7 +12,7 @@ from src.services.ai_analizer import analyze_cv
 from src.services.cv_modifier import modify_cv
 from src.services.auth import signup_user, login_user, get_user_from_token
 from src.services.storage import upload_file, download_file, get_file_url
-from src.services.database import save_analysis, get_user_analyses
+from src.services.database import save_analysis, get_user_analyses, get_analysis_by_id, update_analysis_improved_cv
 from src.services.cv_builder import build_cv_from_info, generate_cv_file
 
 app = FastAPI(title="JobFit - CV Analyzer")
@@ -66,7 +66,10 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
 
 @app.get("/signup", response_class=HTMLResponse)
 async def signup_page(request: Request):
-    return templates.TemplateResponse("signup.html", {"request": request})
+    return templates.TemplateResponse("signup.html", {
+        "request": request,
+        "signup_disabled": True
+    })
 
 
 @app.post("/signup", response_class=HTMLResponse)
@@ -76,18 +79,23 @@ async def signup(
         email: str = Form(...),
         password: str = Form(...)
 ):
+    return templates.TemplateResponse("signup.html", {
+        "request": request,
+        "error": "Signups are currently disabled. Please contact the administrator."
+    })
+
     result = signup_user(email, password, name)
 
-    if result["success"]:
-        return templates.TemplateResponse("signup.html", {
-            "request": request,
-            "success": "Account created! Please login."
-        })
-    else:
-        return templates.TemplateResponse("signup.html", {
-            "request": request,
-            "error": f"Failed to create account: {result['error']}"
-        })
+ #   if result["success"]:
+  #      return templates.TemplateResponse("signup.html", {
+   #         "request": request,
+    #        "success": "Account created! Please login."
+     #   })
+   # else:
+    #    return templates.TemplateResponse("signup.html", {
+     #       "request": request,
+      #      "error": f"Failed to create account: {result['error']}"
+       # })
 
 
 @app.get("/logout")
@@ -136,6 +144,29 @@ async def history_page(request: Request, access_token: Optional[str] = Cookie(No
         "request": request,
         "user": user,
         "analyses": analyses
+    })
+
+
+@app.get("/analysis/{analysis_id}", response_class=HTMLResponse)
+async def analysis_detail(
+        analysis_id: int,
+        request: Request,
+        access_token: Optional[str] = Cookie(None)
+):
+    user = get_current_user(access_token)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+
+    # Get analysis with user verification
+    analysis = get_analysis_by_id(analysis_id, user.id)
+
+    if not analysis:
+        return "<p>Error: Analysis not found or you don't have permission to view it</p>"
+
+    return templates.TemplateResponse("analysis_detail.html", {
+        "request": request,
+        "user": user,
+        "analysis": analysis
     })
 
 
@@ -193,7 +224,8 @@ async def generate_cv(
         output_path = generate_cv_file(cv_text, f"{name.replace(' ', '_')}_resume.docx")
 
         # Upload to storage WITH ACCESS TOKEN
-        upload_result = upload_file(output_path, f"generated_{name.replace(' ', '_')}_resume.docx", user.id, access_token)
+        upload_result = upload_file(output_path, f"generated_{name.replace(' ', '_')}_resume.docx", user.id,
+                                    access_token)
         original_cv_storage_path = upload_result.get("path") if upload_result["success"] else None
 
         # Clean up temp file
@@ -383,6 +415,12 @@ async def process_changes(
         download_url = url_result.get("url")
 
         print(f"Download URL: {download_url}")  # Debug
+
+        # UPDATE: Save improved CV path to the most recent analysis
+        analyses = get_user_analyses(user.id)
+        if analyses and len(analyses) > 0:
+            latest_analysis_id = analyses[0]["id"]
+            update_analysis_improved_cv(latest_analysis_id, improved_cv_storage_path)
 
         # Clean up
         os.unlink(output_path)

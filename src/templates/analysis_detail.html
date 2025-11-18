@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JobFit - Analysis Details</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-brand">✨ JobFit</a>
+            <div class="navbar-menu">
+                <a href="/" class="navbar-link">Home</a>
+                <a href="/history" class="navbar-link">My Analyses</a>
+                <div class="navbar-user">
+                    <div class="navbar-user-icon">{{ user.email[0] }}</div>
+                    <div class="navbar-user-info">
+                        <div class="navbar-user-name">{{ user.user_metadata.name or user.email }}</div>
+                        <div class="navbar-user-email">{{ user.email }}</div>
+                    </div>
+                </div>
+                <a href="/logout" class="navbar-logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-wrapper">
+        <div class="container container-wide">
+            <h1>📊 Analysis Details</h1>
+
+            <p style="text-align: center; color: var(--gray-500); margin-bottom: 32px;">
+                Analyzed on {{ analysis.created_at[:10] }}
+            </p>
+
+            <!-- Score Card -->
+            <div class="score-card">
+                <div class="score-number" style="color: white;">
+                    {{ analysis.match_score }}
+                </div>
+                <div class="score-label">Match Score</div>
+            </div>
+
+            <!-- Download Buttons -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px;">
+                {% if analysis.original_cv_path %}
+                    <a href="/download-file/{{ analysis.original_cv_path }}" class="btn btn-outline" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        📄 Download Original CV
+                    </a>
+                {% else %}
+                    <button class="btn btn-outline" disabled style="opacity: 0.5; cursor: not-allowed;">
+                        📄 Original CV Not Available
+                    </button>
+                {% endif %}
+
+                {% if analysis.improved_cv_path %}
+                    <a href="/download-file/{{ analysis.improved_cv_path }}" class="btn btn-success" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        ✨ Download Improved CV
+                    </a>
+                {% else %}
+                    <button class="btn btn-outline" disabled style="opacity: 0.5; cursor: not-allowed;">
+                        ✨ Improved CV Not Created Yet
+                    </button>
+                {% endif %}
+            </div>
+
+            <!-- Job Description -->
+            <div class="section">
+                <h3>💼 Job Description</h3>
+                <div style="background: var(--gray-100); padding: 20px; border-radius: 12px; border: 2px solid var(--border);">
+                    <pre style="white-space: pre-wrap; word-wrap: break-word; font-family: inherit; margin: 0;">{{ analysis.job_description }}</pre>
+                </div>
+            </div>
+
+            <!-- Skills Analysis -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
+                <div class="section">
+                    <h3>✅ Matching Skills</h3>
+                    <div class="tags matching">
+                        {% if analysis.matching_skills %}
+                            {% for skill in analysis.matching_skills %}
+                                <span class="tag">✓ {{ skill }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <span class="tag">None found</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>❌ Missing Skills</h3>
+                    <div class="tags missing">
+                        {% if analysis.missing_skills %}
+                            {% for skill in analysis.missing_skills %}
+                                <span class="tag">✗ {{ skill }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <span class="tag">None</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Suggestions Applied -->
+            <div class="section">
+                <h3>💡 Improvements Applied</h3>
+                {% if analysis.suggestions %}
+                    <ul style="list-style: none; padding: 0;">
+                        {% for suggestion in analysis.suggestions %}
+                            <li style="padding: 12px; background: var(--gray-100); border-radius: 8px; margin-bottom: 8px; border-left: 4px solid var(--primary);">
+                                {{ suggestion }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p style="color: var(--gray-500);">No improvements were applied yet.</p>
+                {% endif %}
+            </div>
+
+            <!-- Cover Letter Points -->
+            <div class="section">
+                <h3>📝 Cover Letter Points</h3>
+                {% if analysis.cover_letter_points %}
+                    <ul style="list-style: none; padding: 0;">
+                        {% for point in analysis.cover_letter_points %}
+                            <li style="padding: 12px; background: var(--gray-100); border-radius: 8px; margin-bottom: 8px; border-left: 4px solid var(--success);">
+                                {{ point }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p style="color: var(--gray-500);">No cover letter points available.</p>
+                {% endif %}
+            </div>
+
+            <a href="/history" class="back-btn">← Back to My Analyses</a>
+        </div>
+    </div>
+</body>
+</html>

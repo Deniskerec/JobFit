@@ -30,7 +30,7 @@
             {% if analyses %}
                 <div style="display: grid; gap: 20px;">
                     {% for analysis in analyses %}
-                        <div class="option-card" style="text-align: left; display: block;">
+                        <a href="/analysis/{{ analysis.id }}" class="option-card" style="text-align: left; display: block; text-decoration: none; color: inherit; transition: all 0.3s ease;">
                             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
                                 <div>
                                     <h3 style="margin: 0 0 8px 0;">Analysis #{{ analysis.id }}</h3>
@@ -50,19 +50,10 @@
                                 <strong>Job:</strong> {{ analysis.job_description[:100] }}{% if analysis.job_description|length > 100 %}...{% endif %}
                             </p>
 
-                            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                                {% if analysis.original_cv_path %}
-                                    <a href="/download-file/{{ analysis.original_cv_path }}" class="btn btn-small btn-outline">
-                                        📄 Original CV
-                                    </a>
-                                {% endif %}
-                                {% if analysis.improved_cv_path %}
-                                    <a href="/download-file/{{ analysis.improved_cv_path }}" class="btn btn-small btn-success">
-                                        ✨ Improved CV
-                                    </a>
-                                {% endif %}
+                            <div style="color: var(--primary); font-weight: 600; font-size: 14px;">
+                                Click to view details →
                             </div>
-                        </div>
+                        </a>
                     {% endfor %}
                 </div>
             {% else %}
@@ -79,5 +70,12 @@
             <a href="/" class="back-btn">← Back to Home</a>
         </div>
     </div>
+
+    <style>
+        .option-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+    </style>
 </body>
 </html>

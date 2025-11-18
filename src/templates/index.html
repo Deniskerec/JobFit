@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>JobFit - AI Resume Analyzer</title>
+    <title>JobFit - AI Resume Optimizer</title>
     <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body>
@@ -24,53 +24,274 @@
     </nav>
 
     <div class="main-wrapper">
-        <div class="container container-wide">
-            <div class="hero">
-                <h1>🚀 Optimize Your Resume with AI</h1>
-                <p>Get instant feedback and improve your chances of landing your dream job</p>
+        <div class="container-wide">
+            <!-- Hero Section -->
+            <div class="hero-section">
+                <div class="hero-content">
+                    <h1>🚀 Optimize Your Resume with AI</h1>
+                    <p class="hero-subtitle">Get instant feedback and improve your chances of landing your dream job</p>
+                </div>
             </div>
 
+            <!-- Main Options Grid -->
             <div class="options-grid">
-                <a href="/upload" class="option-card">
-                    <div class="option-card-icon">📄</div>
+                <!-- Upload Option -->
+                <a href="/upload" class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        📄
+                    </div>
                     <h3>Upload Existing Resume</h3>
                     <p>Have a resume ready? Upload it and get instant AI-powered analysis and improvements</p>
+                    <div class="feature-arrow">→</div>
                 </a>
 
-                <a href="/create" class="option-card">
-                    <div class="option-card-icon">✍️</div>
+                <!-- Build Option -->
+                <a href="/create" class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        ✍️
+                    </div>
                     <h3>Build New Resume</h3>
                     <p>Don't have a resume? Fill out your details and let AI create a professional one for you</p>
+                    <div class="feature-arrow">→</div>
                 </a>
             </div>
 
-            <div class="features">
-                <div class="feature">
-                    <div class="feature-icon">🎯</div>
-                    <div class="feature-text">Match Score Analysis</div>
+            <!-- Features Section -->
+            <div class="features-section">
+                <h2 style="text-align: center; margin-bottom: 48px;">Why Choose JobFit?</h2>
+
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <div class="feature-item-icon">🎯</div>
+                        <h4>Match Score Analysis</h4>
+                        <p>Get a precise match score showing how well your resume aligns with job requirements</p>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-item-icon">💡</div>
+                        <h4>Smart AI Suggestions</h4>
+                        <p>Receive personalized recommendations to improve your resume's impact and relevance</p>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-item-icon">✅</div>
+                        <h4>Skills Gap Detection</h4>
+                        <p>Identify missing skills and get suggestions on what to add to strengthen your application</p>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-item-icon">📝</div>
+                        <h4>Cover Letter Tips</h4>
+                        <p>Get AI-generated talking points for your cover letter based on the job description</p>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-item-icon">📊</div>
+                        <h4>Track Your Progress</h4>
+                        <p>Save and compare multiple analyses to see how your resume improves over time</p>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-item-icon">🔒</div>
+                        <h4>Secure & Private</h4>
+                        <p>Your data is encrypted and secure. Only you have access to your resumes and analyses</p>
+                    </div>
                 </div>
-                <div class="feature">
-                    <div class="feature-icon">💡</div>
-                    <div class="feature-text">Smart AI Suggestions</div>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">✅</div>
-                    <div class="feature-text">Skills Gap Detection</div>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">📝</div>
-                    <div class="feature-text">Cover Letter Tips</div>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">📊</div>
-                    <div class="feature-text">Track Your Progress</div>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">🔒</div>
-                    <div class="feature-text">Secure & Private</div>
+            </div>
+
+            <!-- CTA Section -->
+            <div class="cta-section">
+                <h2>Ready to land your dream job?</h2>
+                <p>Start optimizing your resume now and stand out from the competition</p>
+                <div style="display: flex; gap: 16px; justify-content: center; margin-top: 32px;">
+                    <a href="/upload" class="btn btn-large">Upload Resume</a>
+                    <a href="/create" class="btn btn-outline btn-large">Build New Resume</a>
                 </div>
             </div>
         </div>
     </div>
+
+    <style>
+        .hero-section {
+            text-align: center;
+            margin-bottom: 64px;
+            padding: 48px 0;
+        }
+
+        .hero-content h1 {
+            font-size: 48px;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin-bottom: 80px;
+        }
+
+        .feature-card {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-4px);
+            border-color: var(--gray-300);
+        }
+
+        .feature-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 24px;
+        }
+
+        .feature-card h3 {
+            font-size: 24px;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .feature-card p {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .feature-arrow {
+            font-size: 24px;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .features-section {
+            margin-bottom: 80px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+        }
+
+        .feature-item {
+            text-align: center;
+            padding: 32px 24px;
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .feature-item-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .feature-item h4 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .feature-item p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .cta-section {
+            text-align: center;
+            padding: 64px 48px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 24px;
+            color: white;
+            margin-bottom: 48px;
+        }
+
+        .cta-section h2 {
+            font-size: 36px;
+            color: white;
+            margin-bottom: 16px;
+        }
+
+        .cta-section p {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .btn-large {
+            padding: 16px 32px;
+            font-size: 16px;
+        }
+
+        @media (max-width: 1024px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-content h1 {
+                font-size: 36px;
+            }
+        }
+    </style>
 </body>
 </html>

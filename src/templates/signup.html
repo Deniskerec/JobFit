@@ -6,41 +6,51 @@
 </head>
 <body>
     <div class="main-wrapper">
-        <div class="container auth-container">
-            <div class="logo">
-                <h1>✨ JobFit</h1>
-                <p>Create Your Account</p>
-            </div>
+        <div class="auth-container">
+            <div class="auth-card">
+                <h1>Create Account</h1>
 
-            {% if error %}
-            <div class="error-message">{{ error }}</div>
-            {% endif %}
+                {% if signup_disabled %}
+                    <div class="alert alert-error">
+                        Signups are currently disabled. Please contact the administrator for access.
+                    </div>
+                    <div class="auth-footer">
+                        Already have an account? <a href="/login">Login</a>
+                    </div>
+                {% else %}
+                    <p>Join JobFit to optimize your resume with AI</p>
 
-            {% if success %}
-            <div class="success-message">{{ success }}</div>
-            {% endif %}
+                    {% if success %}
+                        <div class="alert alert-success">{{ success }}</div>
+                    {% endif %}
 
-            <form action="/signup" method="post">
-                <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" name="name" placeholder="John Smith" required>
-                </div>
+                    {% if error %}
+                        <div class="alert alert-error">{{ error }}</div>
+                    {% endif %}
 
-                <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" name="email" placeholder="you@example.com" required>
-                </div>
+                    <form method="post">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" name="name" required>
+                        </div>
 
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" name="password" placeholder="••••••••" minlength="6" required>
-                </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" name="email" required>
+                        </div>
 
-                <button type="submit">🚀 Create My Account</button>
-            </form>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" name="password" required minlength="6">
+                        </div>
 
-            <div class="switch-link">
-                Already have an account? <a href="/login">Login here</a>
+                        <button type="submit">Create Account</button>
+                    </form>
+
+                    <div class="auth-footer">
+                        Already have an account? <a href="/login">Login</a>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
