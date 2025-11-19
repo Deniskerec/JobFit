@@ -13,6 +13,7 @@ from src.services.cv_modifier import modify_cv
 from src.services.auth import signup_user, login_user, get_user_from_token
 from src.services.storage import upload_file, download_file, get_file_url
 from src.services.database import save_analysis, get_user_analyses, get_analysis_by_id, update_analysis_improved_cv
+from src.services.cover_letter_generator import generate_cover_letter, create_cover_letter_docx
 from src.services.cv_builder import build_cv_from_info, generate_cv_file
 
 app = FastAPI(title="JobFit - CV Analyzer")
@@ -111,7 +112,9 @@ async def logout():
 async def home(request: Request, access_token: Optional[str] = Cookie(None)):
     user = get_current_user(access_token)
     if not user:
-        return RedirectResponse(url="/login", status_code=303)
+        # Show landing page if not logged in
+        return templates.TemplateResponse("landing.html", {"request": request})
+    # Show dashboard if logged in
     return templates.TemplateResponse("index.html", {"request": request, "user": user})
 
 
@@ -471,7 +474,115 @@ async def download_stored_file(path: str, access_token: Optional[str] = Cookie(N
             return {"error": "File not found"}
     except Exception as e:
         return {"error": str(e)}
+# ==================== COVER LETTER ====================
 
+@app.get("/cover-letter", response_class=HTMLResponse)
+async def cover_letter_page(request: Request, access_token: Optional[str] = Cookie(None)):
+    user = get_current_user(access_token)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+    return templates.TemplateResponse("cover_letter.html", {"request": request, "user": user})
+
+
+@app.post("/generate-cover-letter", response_class=HTMLResponse)
+async def generate_cover_letter_route(
+        request: Request,
+        name: str = Form(...),
+        email: str = Form(...),
+        phone: str = Form(""),
+        linkedin: str = Form(""),
+        resume_file: Optional[UploadFile] = File(None),
+        resume_text: str = Form(""),
+        job_title: str = Form(...),
+        company_name: str = Form(...),
+        job_description: str = Form(...),
+        access_token: Optional[str] = Cookie(None)
+):
+    user = get_current_user(access_token)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+
+    tmp_path = None
+    output_path = None
+
+    try:
+        # Get resume text
+        if resume_file and resume_file.filename:
+            suffix = os.path.splitext(resume_file.filename)[1]
+            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+                content = await resume_file.read()
+                tmp.write(content)
+                tmp_path = tmp.name
+
+            resume_content = parse_file(tmp_path)
+        elif resume_text.strip():
+            resume_content = resume_text
+        else:
+            return "<p>Error: Please upload a resume or paste resume text</p>"
+
+        user_info = {
+            "name": name,
+            "email": email,
+            "phone": phone,
+            "linkedin": linkedin
+        }
+
+        # Generate cover letter with AI
+        cover_letter_text = generate_cover_letter(resume_content, job_description, user_info)
+
+        # Create DOCX file
+        filename = f"{name.replace(' ', '_')}_cover_letter_{company_name.replace(' ', '_')}.docx"
+        output_path = create_cover_letter_docx(cover_letter_text, user_info, filename)
+
+        print(f"Created cover letter at: {output_path}")
+
+        # Upload to storage
+        upload_result = upload_file(output_path, filename, user.id, access_token)
+        print(f"Upload result: {upload_result}")
+
+        storage_path = upload_result.get("path") if upload_result["success"] else None
+
+        # Get download URL
+        download_url = None
+        if storage_path:
+            print(f"Storage path: {storage_path}")
+            url_result = get_file_url(storage_path, access_token)
+            print(f"URL result: {url_result}")
+            download_url = url_result.get("url") if url_result["success"] else None
+            print(f"Download URL: {download_url}")
+
+        if not download_url:
+            print("ERROR: No download URL generated!")
+            return "<p>Error: Could not generate download URL. Check logs.</p>"
+
+        return templates.TemplateResponse("cover_letter_preview.html", {
+            "request": request,
+            "user": user,
+            "cover_letter_text": cover_letter_text,
+            "download_url": download_url,
+            "job_title": job_title,
+            "company_name": company_name,
+            "filename": filename
+        })
+
+    except Exception as e:
+        print(f"Cover letter generation error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return f"<p>Error: {str(e)}</p>"
+
+    finally:
+        if tmp_path and os.path.exists(tmp_path):
+            try:
+                os.unlink(tmp_path)
+            except:
+                pass
+
+        if output_path and os.path.exists(output_path):
+            try:
+                os.unlink(output_path)
+            except:
+                pass
 
 if __name__ == "__main__":
     import uvicorn

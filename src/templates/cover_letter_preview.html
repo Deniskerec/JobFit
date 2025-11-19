@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JobFit - Your Cover Letter</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-brand">✨ JobFit</a>
+            <div class="navbar-menu">
+                <a href="/" class="navbar-link">Home</a>
+                <a href="/history" class="navbar-link">My Analyses</a>
+                <div class="navbar-user">
+                    <div class="navbar-user-icon">{{ user.email[0] }}</div>
+                    <div class="navbar-user-info">
+                        <div class="navbar-user-name">{{ user.user_metadata.name or user.email }}</div>
+                        <div class="navbar-user-email">{{ user.email }}</div>
+                    </div>
+                </div>
+                <a href="/logout" class="navbar-logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-wrapper">
+        <div class="container">
+            <div class="success-icon">✅</div>
+            <h1>Your Cover Letter is Ready!</h1>
+            <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px;">
+                AI has generated a personalized cover letter for <strong>{{ job_title }}</strong> at <strong>{{ company_name }}</strong>
+            </p>
+
+            <a href="{{ download_url }}" class="btn btn-success" download="{{ filename }}" style="margin-bottom: 32px; display: inline-block;">
+                📥 Download Cover Letter
+            </a>
+            <div class="section">
+                <h3>📝 Preview</h3>
+                <div class="preview-section">
+                    <pre>{{ cover_letter_text }}</pre>
+                </div>
+            </div>
+
+            <div class="section" style="background: var(--gray-50); border: 2px dashed var(--primary);">
+                <h3>💡 Tips for Using Your Cover Letter</h3>
+                <ul style="list-style: disc; padding-left: 24px;">
+                    <li style="margin-bottom: 12px; background: transparent; border: none; padding: 0;">
+                        Replace <code>[HIRING_MANAGER]</code> with the actual hiring manager's name if you know it
+                    </li>
+                    <li style="margin-bottom: 12px; background: transparent; border: none; padding: 0;">
+                        Customize <code>[COMPANY_NAME]</code> and <code>[POSITION]</code> placeholders
+                    </li>
+                    <li style="margin-bottom: 12px; background: transparent; border: none; padding: 0;">
+                        Review and personalize any sections to add your unique voice
+                    </li>
+                    <li style="background: transparent; border: none; padding: 0;">
+                        Always proofread before sending!
+                    </li>
+                </ul>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 32px;">
+                <a href="/cover-letter" class="btn btn-outline">✍️ Generate Another</a>
+                <a href="/" class="btn btn-outline">🏠 Back to Home</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

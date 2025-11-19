@@ -60,7 +60,7 @@ Create a complete, professional resume. If there is no work experience or educat
 """
 
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-4o-mini",  # Use gpt-4o-mini which supports chat format
         messages=[
             {"role": "user", "content": prompt}
         ]

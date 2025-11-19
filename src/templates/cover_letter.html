@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JobFit - Cover Letter Generator</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-brand">✨ JobFit</a>
+            <div class="navbar-menu">
+                <a href="/" class="navbar-link">Home</a>
+                <a href="/history" class="navbar-link">My Analyses</a>
+                <div class="navbar-user">
+                    <div class="navbar-user-icon">{{ user.email[0] }}</div>
+                    <div class="navbar-user-info">
+                        <div class="navbar-user-name">{{ user.user_metadata.name or user.email }}</div>
+                        <div class="navbar-user-email">{{ user.email }}</div>
+                    </div>
+                </div>
+                <a href="/logout" class="navbar-logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-wrapper">
+        <div class="container">
+            <h1>📝 Generate Cover Letter</h1>
+            <p style="text-align: center; color: var(--text-secondary); margin-bottom: 40px;">
+                Create a personalized cover letter tailored to the job you're applying for
+            </p>
+
+            <form id="coverLetterForm" action="/generate-cover-letter" method="post" enctype="multipart/form-data">
+                <!-- Personal Information -->
+                <div class="section">
+                    <h3>👤 Your Information</h3>
+
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" name="name" required placeholder="John Doe">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email *</label>
+                        <input type="email" name="email" required placeholder="john@example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Phone (optional)</label>
+                        <input type="tel" name="phone" placeholder="+1 (555) 123-4567">
+                    </div>
+
+                    <div class="form-group">
+                        <label>LinkedIn Profile (optional)</label>
+                        <input type="text" name="linkedin" placeholder="linkedin.com/in/johndoe">
+                    </div>
+                </div>
+
+                <!-- Resume Upload or Paste -->
+                <div class="section">
+                    <h3>📄 Your Resume</h3>
+                    <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">
+                        Upload your resume or paste the text content
+                    </p>
+
+                    <div class="form-group">
+                        <label>Upload Resume (PDF or DOCX)</label>
+                        <input type="file" name="resume_file" accept=".pdf,.docx">
+                    </div>
+
+                    <p style="text-align: center; color: var(--text-secondary); margin: 16px 0;">OR</p>
+
+                    <div class="form-group">
+                        <label>Paste Resume Text</label>
+                        <textarea name="resume_text" rows="8" placeholder="Paste your resume content here..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Job Description -->
+                <div class="section">
+                    <h3>💼 Job Details</h3>
+
+                    <div class="form-group">
+                        <label>Job Title *</label>
+                        <input type="text" name="job_title" required placeholder="Software Engineer">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Company Name *</label>
+                        <input type="text" name="company_name" required placeholder="Tech Corp">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Job Description *</label>
+                        <textarea name="job_description" required rows="10" placeholder="Paste the full job description here..."></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" style="width: 100%; margin-top: 24px;">
+                    ✨ Generate Cover Letter
+                </button>
+            </form>
+
+            <a href="/" class="back-btn">← Back to Home</a>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h3>✍️ AI is Writing Your Cover Letter...</h3>
+            <p>This may take 15-30 seconds</p>
+            <div class="loading-steps">
+                <div class="loading-step active" id="step1">
+                    <span class="loading-step-icon">⏳</span>
+                    <span>Analyzing your resume...</span>
+                </div>
+                <div class="loading-step" id="step2">
+                    <span class="loading-step-icon">⏳</span>
+                    <span>Matching with job requirements...</span>
+                </div>
+                <div class="loading-step" id="step3">
+                    <span class="loading-step-icon">⏳</span>
+                    <span>Crafting personalized letter...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('coverLetterForm');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        form.addEventListener('submit', function(e) {
+            loadingOverlay.classList.add('active');
+
+            setTimeout(() => {
+                document.getElementById('step1').classList.add('complete');
+                document.getElementById('step1').classList.remove('active');
+                document.getElementById('step1').querySelector('.loading-step-icon').textContent = '✓';
+                document.getElementById('step2').classList.add('active');
+            }, 2000);
+
+            setTimeout(() => {
+                document.getElementById('step2').classList.add('complete');
+                document.getElementById('step2').classList.remove('active');
+                document.getElementById('step2').querySelector('.loading-step-icon').textContent = '✓';
+                document.getElementById('step3').classList.add('active');
+            }, 5000);
+        });
+    </script>
+</body>
+</html>
