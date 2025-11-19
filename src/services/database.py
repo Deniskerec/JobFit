@@ -53,6 +53,7 @@ def get_all_analyses():
     response = supabase.table("cv_analyses").select("*").execute()
     return response.data
 
+
 def update_analysis_improved_cv(analysis_id, improved_cv_path):
     """Update analysis with improved CV path"""
     try:
@@ -63,3 +64,86 @@ def update_analysis_improved_cv(analysis_id, improved_cv_path):
     except Exception as e:
         print(f"Error updating analysis: {str(e)}")
         return {"success": False, "error": str(e)}
+
+
+# ==================== NEW FUNCTIONS ====================
+
+def save_generated_cv(user_id, name, email, cv_file_path, has_experience=False, has_education=False, job_title=None,
+                      company_name=None):
+    """Save generated CV record to database"""
+    try:
+        data = {
+            "user_id": user_id,
+            "name": name,
+            "email": email,
+            "cv_file_path": cv_file_path,
+            "has_experience": has_experience,
+            "has_education": has_education,
+            "job_title": job_title,
+            "company_name": company_name
+        }
+        response = supabase.table("generated_cvs").insert(data).execute()
+        return {"success": True, "data": response.data}
+    except Exception as e:
+        print(f"Error saving generated CV: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+
+def save_cover_letter(user_id, name, job_title, company_name, cover_letter_file_path):
+    """Save cover letter record to database"""
+    try:
+        data = {
+            "user_id": user_id,
+            "name": name,
+            "job_title": job_title,
+            "company_name": company_name,
+            "cover_letter_file_path": cover_letter_file_path
+        }
+        response = supabase.table("cover_letters").insert(data).execute()
+        return {"success": True, "data": response.data}
+    except Exception as e:
+        print(f"Error saving cover letter: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+
+def get_user_generated_cvs(user_id):
+    """Get all generated CVs for a user"""
+    try:
+        response = supabase.table("generated_cvs").select("*").eq("user_id", user_id).order("created_at",
+                                                                                            desc=True).execute()
+        return response.data
+    except Exception as e:
+        print(f"Error getting generated CVs: {str(e)}")
+        return []
+
+
+def get_user_cover_letters(user_id):
+    """Get all cover letters for a user"""
+    try:
+        response = supabase.table("cover_letters").select("*").eq("user_id", user_id).order("created_at",
+                                                                                            desc=True).execute()
+        return response.data
+    except Exception as e:
+        print(f"Error getting cover letters: {str(e)}")
+        return []
+
+
+def get_user_all_activities(user_id):
+    """Get all user activities (analyses, CVs, cover letters) sorted by date"""
+    analyses = get_user_analyses(user_id)
+    cvs = get_user_generated_cvs(user_id)
+    letters = get_user_cover_letters(user_id)
+
+    # Add type to each activity
+    for item in analyses:
+        item['activity_type'] = 'analysis'
+    for item in cvs:
+        item['activity_type'] = 'generated_cv'
+    for item in letters:
+        item['activity_type'] = 'cover_letter'
+
+    # Combine and sort by created_at
+    all_activities = analyses + cvs + letters
+    all_activities.sort(key=lambda x: x['created_at'], reverse=True)
+
+    return all_activities

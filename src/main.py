@@ -12,13 +12,20 @@ from src.services.ai_analizer import analyze_cv
 from src.services.cv_modifier import modify_cv
 from src.services.auth import signup_user, login_user, get_user_from_token
 from src.services.storage import upload_file, download_file, get_file_url
-from src.services.database import save_analysis, get_user_analyses, get_analysis_by_id, update_analysis_improved_cv
+from src.services.database import (
+    save_analysis,
+    get_user_analyses,
+    get_analysis_by_id,
+    update_analysis_improved_cv,
+    save_generated_cv,
+    save_cover_letter,
+    get_user_all_activities
+)
 from src.services.cover_letter_generator import generate_cover_letter, create_cover_letter_docx
 from src.services.cv_builder import build_cv_from_info, generate_cv_file
 
 app = FastAPI(title="JobFit - CV Analyzer")
 
-# Get the base directory
 # Get the base directory
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -41,12 +48,6 @@ else:
         print(f"✅ Static files mounted from alternative path: {alt_static_dir}")
     else:
         print(f"❌ Static files not found at alternative path either")
-
-# Setup templates
-templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
-
-# Mount static files
-app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
 # Setup templates
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
@@ -109,19 +110,6 @@ async def signup(
         "error": "Signups are currently disabled. Please contact the administrator."
     })
 
-    result = signup_user(email, password, name)
-
- #   if result["success"]:
-  #      return templates.TemplateResponse("signup.html", {
-   #         "request": request,
-    #        "success": "Account created! Please login."
-     #   })
-   # else:
-    #    return templates.TemplateResponse("signup.html", {
-     #       "request": request,
-      #      "error": f"Failed to create account: {result['error']}"
-       # })
-
 
 @app.get("/logout")
 async def logout():
@@ -158,20 +146,26 @@ async def create_page(request: Request, access_token: Optional[str] = Cookie(Non
     return templates.TemplateResponse("create.html", {"request": request, "user": user})
 
 
-@app.get("/history", response_class=HTMLResponse)
-async def history_page(request: Request, access_token: Optional[str] = Cookie(None)):
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard_page(request: Request, access_token: Optional[str] = Cookie(None)):
     user = get_current_user(access_token)
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    # Get user's analyses from database
-    analyses = get_user_analyses(user.id)
+    # Get all user activities
+    activities = get_user_all_activities(user.id)
 
-    return templates.TemplateResponse("history.html", {
+    return templates.TemplateResponse("dashboard.html", {
         "request": request,
         "user": user,
-        "analyses": analyses
+        "activities": activities
     })
+
+
+# Keep old /history route for backwards compatibility
+@app.get("/history", response_class=HTMLResponse)
+async def history_redirect(request: Request, access_token: Optional[str] = Cookie(None)):
+    return RedirectResponse(url="/dashboard", status_code=301)
 
 
 @app.get("/analysis/{analysis_id}", response_class=HTMLResponse)
@@ -262,6 +256,18 @@ async def generate_cv(
         upload_result = upload_file(output_path, f"generated_{name.replace(' ', '_')}_resume.docx", user.id,
                                     access_token)
         original_cv_storage_path = upload_result.get("path") if upload_result["success"] else None
+
+        # Save generated CV to database
+        save_generated_cv(
+            user_id=user.id,
+            name=name,
+            email=email,
+            cv_file_path=original_cv_storage_path,
+            has_experience=bool(job_title_1 and job_title_1.strip()),
+            has_education=bool(degree and degree.strip()),
+            job_title=job_title_1 if job_title_1 else None,
+            company_name=company_1 if company_1 else None
+        )
 
         # Clean up temp file
         os.unlink(output_path)
@@ -451,7 +457,7 @@ async def process_changes(
 
         download_url = url_result.get("url")
 
-        print(f"Download URL: {download_url}")  # Debug
+        print(f"Download URL: {download_url}")
 
         # UPDATE: Save improved CV path to the most recent analysis
         analyses = get_user_analyses(user.id)
@@ -475,29 +481,6 @@ async def process_changes(
         return f"<p>Error: {str(e)}</p>"
 
 
-# ==================== FILE DOWNLOAD ====================
-
-@app.get("/download-file/{path:path}")
-async def download_stored_file(path: str, access_token: Optional[str] = Cookie(None)):
-    user = get_current_user(access_token)
-    if not user:
-        return RedirectResponse(url="/login", status_code=303)
-
-    try:
-        # Download from Supabase storage WITH ACCESS TOKEN
-        temp_path = f"/tmp/{path.split('/')[-1]}"
-        result = download_file(path, temp_path, access_token)
-
-        if result["success"]:
-            return FileResponse(
-                path=temp_path,
-                filename=path.split('/')[-1],
-                media_type="application/octet-stream"
-            )
-        else:
-            return {"error": "File not found"}
-    except Exception as e:
-        return {"error": str(e)}
 # ==================== COVER LETTER ====================
 
 @app.get("/cover-letter", response_class=HTMLResponse)
@@ -566,6 +549,16 @@ async def generate_cover_letter_route(
 
         storage_path = upload_result.get("path") if upload_result["success"] else None
 
+        # Save cover letter to database
+        if storage_path:
+            save_cover_letter(
+                user_id=user.id,
+                name=name,
+                job_title=job_title,
+                company_name=company_name,
+                cover_letter_file_path=storage_path
+            )
+
         # Get download URL
         download_url = None
         if storage_path:
@@ -608,7 +601,32 @@ async def generate_cover_letter_route(
             except:
                 pass
 
+
+# ==================== FILE DOWNLOAD ====================
+
+@app.get("/download-file/{path:path}")
+async def download_stored_file(path: str, access_token: Optional[str] = Cookie(None)):
+    user = get_current_user(access_token)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+
+    try:
+        # Download from Supabase storage WITH ACCESS TOKEN
+        temp_path = f"/tmp/{path.split('/')[-1]}"
+        result = download_file(path, temp_path, access_token)
+
+        if result["success"]:
+            return FileResponse(
+                path=temp_path,
+                filename=path.split('/')[-1],
+                media_type="application/octet-stream"
+            )
+        else:
+            return {"error": "File not found"}
+    except Exception as e:
+        return {"error": str(e)}
+
+
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run(app, host="127.0.0.1", port=8000)

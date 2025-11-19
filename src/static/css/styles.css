@@ -732,54 +732,135 @@ ul li {
     color: var(--text-primary);
 }
 
-/* ==================== RESPONSIVE ==================== */
+/* ==================== DASHBOARD / ACTIVITY CARDS ==================== */
 
-@media (max-width: 768px) {
-    h1 {
-        font-size: 32px;
-    }
-
-    .navbar-container {
-        padding: 0 20px;
-    }
-
-    .navbar-menu {
-        gap: 20px;
-    }
-
-    .navbar-user-info {
-        display: none;
-    }
-
-    .main-wrapper {
-        padding: 40px 20px;
-    }
-
-    .score-card {
-        padding: 32px 24px;
-    }
-
-    .score-number {
-        font-size: 56px;
-    }
+.activity-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: var(--shadow-xs);
 }
 
-/* ==================== UTILITY CLASSES ==================== */
-
-.text-center {
-    text-align: center;
+.activity-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-4px);
+    border-color: var(--gray-300);
 }
 
-.mb-1 { margin-bottom: 8px; }
-.mb-2 { margin-bottom: 16px; }
-.mb-3 { margin-bottom: 24px; }
-.mb-4 { margin-bottom: 32px; }
+.activity-analysis {
+    border-left: 4px solid var(--primary);
+}
 
-.mt-1 { margin-top: 8px; }
-.mt-2 { margin-top: 16px; }
-.mt-3 { margin-top: 24px; }
-.mt-4 { margin-top: 32px; }
+.activity-cv {
+    border-left: 4px solid var(--success);
+}
 
+.activity-letter {
+    border-left: 4px solid #8B5CF6;
+}
+
+.activity-icon {
+    font-size: 48px;
+    flex-shrink: 0;
+    width: 72px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gray-50);
+    border-radius: 12px;
+}
+
+.activity-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 16px;
+}
+
+.activity-header h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.activity-date {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.activity-description {
+    font-size: 15px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    line-height: 1.6;
+}
+
+.activity-description strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.activity-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.activity-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    background: var(--gray-100);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+}
+
+.activity-arrow {
+    font-size: 28px;
+    color: var(--gray-300);
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+
+.activity-card:hover .activity-arrow {
+    color: var(--primary);
+    transform: translateX(4px);
+}
+
+/* Only analysis cards should be clickable links */
+.activity-card.activity-analysis {
+    cursor: pointer;
+}
+
+.activity-card.activity-cv,
+.activity-card.activity-letter {
+    cursor: default;
+}
+
+.activity-card.activity-cv .activity-arrow,
+.activity-card.activity-letter .activity-arrow {
+    display: none;
+}
 
 /* ==================== LANDING PAGE STYLES ==================== */
 
@@ -1182,6 +1263,8 @@ ul li {
     font-size: 14px;
 }
 
+/* ==================== RESPONSIVE ==================== */
+
 @media (max-width: 1024px) {
     .features-grid-large {
         grid-template-columns: repeat(2, 1fr);
@@ -1197,6 +1280,34 @@ ul li {
 }
 
 @media (max-width: 768px) {
+    h1 {
+        font-size: 32px;
+    }
+
+    .navbar-container {
+        padding: 0 20px;
+    }
+
+    .navbar-menu {
+        gap: 20px;
+    }
+
+    .navbar-user-info {
+        display: none;
+    }
+
+    .main-wrapper {
+        padding: 40px 20px;
+    }
+
+    .score-card {
+        padding: 32px 24px;
+    }
+
+    .score-number {
+        font-size: 56px;
+    }
+
     .hero-title {
         font-size: 42px;
     }
@@ -1218,4 +1329,45 @@ ul li {
         grid-template-columns: 1fr;
         gap: 32px;
     }
+
+    .activity-card {
+        padding: 20px;
+        gap: 16px;
+    }
+
+    .activity-icon {
+        font-size: 36px;
+        width: 56px;
+        height: 56px;
+    }
+
+    .activity-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .activity-header h3 {
+        font-size: 18px;
+    }
+
+    .activity-arrow {
+        display: none;
+    }
 }
+
+/* ==================== UTILITY CLASSES ==================== */
+
+.text-center {
+    text-align: center;
+}
+
+.mb-1 { margin-bottom: 8px; }
+.mb-2 { margin-bottom: 16px; }
+.mb-3 { margin-bottom: 24px; }
+.mb-4 { margin-bottom: 32px; }
+
+.mt-1 { margin-top: 8px; }
+.mt-2 { margin-top: 16px; }
+.mt-3 { margin-top: 24px; }
+.mt-4 { margin-top: 32px; }

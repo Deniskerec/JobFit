@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JobFit - My Dashboard</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-brand">✨ JobFit</a>
+            <div class="navbar-menu">
+                <a href="/" class="navbar-link">Home</a>
+                <a href="/dashboard" class="navbar-link active">Dashboard</a>
+                <div class="navbar-user">
+                    <div class="navbar-user-icon">{{ user.email[0] }}</div>
+                    <div class="navbar-user-info">
+                        <div class="navbar-user-name">{{ user.user_metadata.name or user.email }}</div>
+                        <div class="navbar-user-email">{{ user.email }}</div>
+                    </div>
+                </div>
+                <a href="/logout" class="navbar-logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-wrapper">
+        <div class="container-wide">
+            <h1>📊 My Dashboard</h1>
+            <p style="text-align: center; color: var(--text-secondary); margin-bottom: 40px;">
+                All your resumes, analyses, and cover letters in one place
+            </p>
+
+            {% if activities %}
+                <div style="display: grid; gap: 20px;">
+                    {% for activity in activities %}
+
+                        {% if activity.activity_type == 'analysis' %}
+                            <!-- Resume Analysis Card -->
+                            <a href="/analysis/{{ activity.id }}" class="activity-card activity-analysis">
+                                <div class="activity-icon">🎯</div>
+                                <div class="activity-content">
+                                    <div class="activity-header">
+                                        <h3>Resume Analysis</h3>
+                                        <span class="activity-date">{{ activity.created_at[:10] }}</span>
+                                    </div>
+                                    <p class="activity-description">
+                                        Match Score: <strong style="color:
+                                            {% if activity.match_score >= 70 %}var(--success)
+                                            {% elif activity.match_score >= 50 %}var(--warning)
+                                            {% else %}var(--danger){% endif %}">
+                                            {{ activity.match_score }}%
+                                        </strong>
+                                        <br>
+                                        Job: {{ activity.job_description[:80] }}{% if activity.job_description|length > 80 %}...{% endif %}
+                                    </p>
+                                    <div class="activity-actions">
+                                        {% if activity.original_cv_path %}
+                                            <span class="activity-badge">📄 Original CV</span>
+                                        {% endif %}
+                                        {% if activity.improved_cv_path %}
+                                            <span class="activity-badge">✨ Improved CV</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="activity-arrow">→</div>
+                            </a>
+
+                        {% elif activity.activity_type == 'generated_cv' %}
+                            <!-- Generated CV Card -->
+                            <div class="activity-card activity-cv">
+                                <div class="activity-icon">📝</div>
+                                <div class="activity-content">
+                                    <div class="activity-header">
+                                        <h3>Generated Resume</h3>
+                                        <span class="activity-date">{{ activity.created_at[:10] }}</span>
+                                    </div>
+                                    <p class="activity-description">
+                                        Created for: <strong>{{ activity.name }}</strong>
+                                        {% if activity.job_title %}
+                                        <br>Position: {{ activity.job_title }}
+                                        {% if activity.company_name %}at {{ activity.company_name }}{% endif %}
+                                        {% endif %}
+                                    </p>
+                                    <div class="activity-actions">
+                                        {% if activity.has_experience %}
+                                            <span class="activity-badge">💼 With Experience</span>
+                                        {% endif %}
+                                        {% if activity.has_education %}
+                                            <span class="activity-badge">🎓 With Education</span>
+                                        {% endif %}
+                                        {% if activity.cv_file_path %}
+                                            <a href="/download-file/{{ activity.cv_file_path }}" class="btn btn-small btn-success" style="margin-left: auto;">📥 Download</a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                        {% elif activity.activity_type == 'cover_letter' %}
+                            <!-- Cover Letter Card -->
+                            <div class="activity-card activity-letter">
+                                <div class="activity-icon">✍️</div>
+                                <div class="activity-content">
+                                    <div class="activity-header">
+                                        <h3>Cover Letter</h3>
+                                        <span class="activity-date">{{ activity.created_at[:10] }}</span>
+                                    </div>
+                                    <p class="activity-description">
+                                        For: <strong>{{ activity.job_title }}</strong> at <strong>{{ activity.company_name }}</strong>
+                                        <br>
+                                        Applicant: {{ activity.name }}
+                                    </p>
+                                    <div class="activity-actions">
+                                        {% if activity.cover_letter_file_path %}
+                                            <a href="/download-file/{{ activity.cover_letter_file_path }}" class="btn btn-small btn-success" style="margin-left: auto;">📥 Download</a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                        {% endif %}
+
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div style="text-align: center; padding: 80px 20px;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">📭</div>
+                    <h2 style="color: var(--gray-700); margin-bottom: 12px;">No activity yet</h2>
+                    <p style="color: var(--gray-500); margin-bottom: 32px;">
+                        Start by uploading a resume, creating one, or generating a cover letter
+                    </p>
+                    <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+                        <a href="/upload" class="btn btn-primary">📤 Upload Resume</a>
+                        <a href="/create" class="btn btn-outline">✍️ Create Resume</a>
+                        <a href="/cover-letter" class="btn btn-outline">📝 Cover Letter</a>
+                    </div>
+                </div>
+            {% endif %}
+
+            <a href="/" class="back-btn" style="margin-top: 40px;">← Back to Home</a>
+        </div>
+    </div>
+</body>
+</html>
