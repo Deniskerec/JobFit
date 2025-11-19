@@ -19,7 +19,31 @@ from src.services.cv_builder import build_cv_from_info, generate_cv_file
 app = FastAPI(title="JobFit - CV Analyzer")
 
 # Get the base directory
+# Get the base directory
 BASE_DIR = Path(__file__).resolve().parent
+
+# Debug: Print paths
+print(f"BASE_DIR: {BASE_DIR}")
+print(f"Static dir: {BASE_DIR / 'static'}")
+print(f"Static dir exists: {(BASE_DIR / 'static').exists()}")
+
+# Mount static files with error handling
+static_dir = BASE_DIR / "static"
+if static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+    print(f"✅ Static files mounted from: {static_dir}")
+else:
+    print(f"⚠️ WARNING: Static directory not found at {static_dir}")
+    # Try alternative path (in case of deployment)
+    alt_static_dir = Path("/opt/render/project/src/src/static")
+    if alt_static_dir.exists():
+        app.mount("/static", StaticFiles(directory=str(alt_static_dir)), name="static")
+        print(f"✅ Static files mounted from alternative path: {alt_static_dir}")
+    else:
+        print(f"❌ Static files not found at alternative path either")
+
+# Setup templates
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
